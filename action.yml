@@ -1,10 +1,10 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'AWS-CodePipeline-Trigger'
+description: 'Action that triggers an aws pipeline code. To do this, you need an AWS account (AWS id and key) and a pipeline created on AWS (pipeline name). '
+author: '@pgrandieres'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: 'heart'
+  icon: 'flag'
   color: 'red'
 
 # Define your inputs here.
