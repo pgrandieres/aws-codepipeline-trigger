@@ -1,3 +1,3 @@
-# Trigger AWS CodePipeline
+# Trigger AWS Pipeline
 
-Not usable yet
+In progress...
