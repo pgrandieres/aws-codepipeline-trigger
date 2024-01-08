@@ -1,5 +1,5 @@
-name: 'AWS-CodePipeline-Trigger'
-description: 'Action that triggers an aws pipeline code. To do this, you need an AWS account (AWS id and key) and a pipeline created on AWS (pipeline name). '
+name: 'AWS CodePipeline Trigger'
+description: 'Action that triggers an aws pipeline code.'
 author: '@pgrandieres'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
