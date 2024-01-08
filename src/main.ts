@@ -1,5 +1,8 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import {
+  CodePipelineClient,
+  StartPipelineExecutionCommand
+} from '@aws-sdk/client-codepipeline'
 
 /**
  * The main function for the action.
@@ -7,20 +10,36 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const awsRegion: string = core.getInput('aws-region')
+    const awsAccessKey: string = core.getInput('aws-access-key')
+    const awsSecretKey: string = core.getInput('aws-secret-key')
+    const pipelineName: string = core.getInput('pipeline-name')
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    const codePipelineClient = new CodePipelineClient({
+      region: awsRegion,
+      credentials: {
+        accessKeyId: awsAccessKey,
+        secretAccessKey: awsSecretKey
+      }
+    })
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const startCommand = new StartPipelineExecutionCommand({
+      name: pipelineName
+    })
 
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    try {
+      const data = await codePipelineClient.send(startCommand)
+      console.log(data)
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message)
+        core.setFailed(err.message)
+      } else {
+        console.error('An unknown error occurred')
+        core.setFailed('An unknown error occurred')
+      }
+    }
   } catch (error) {
-    // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+    core.setFailed((error as Error).message)
   }
 }

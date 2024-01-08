@@ -2,22 +2,23 @@ name: 'Trigger AWS CodePipeline'
 description: 'Action that triggers an aws pipeline code.'
 author: '@pgrandieres'
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
   icon: 'flag'
   color: 'red'
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  aws-region:
+    description: "AWS Region where the CodePipeline is located"
     required: true
-    default: '1000'
-
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
+  aws-access-key:
+    description: "AWS Access Key ID to trigger CodePipeline"
+    required: true
+  aws-secret-key:
+    description: "AWS Secret Key to trigger CodePipeline"
+    required: true
+  pipeline-name:
+    description: "The name of the pipeline"
+    required: true
 
 runs:
   using: node20
