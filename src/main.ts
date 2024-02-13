@@ -1,8 +1,46 @@
 import * as core from '@actions/core'
 import {
   CodePipelineClient,
-  StartPipelineExecutionCommand
+  StartPipelineExecutionCommand,
+  GetPipelineExecutionCommand,
+  StartPipelineExecutionCommandOutput,
+  GetPipelineExecutionCommandOutput
 } from '@aws-sdk/client-codepipeline'
+
+/**
+ * Polls the pipeline execution status until it's no longer in progress.
+ * @param client The CodePipelineClient instance.
+ * @param pipelineName The name of the pipeline.
+ * @param executionId The execution ID of the pipeline.
+ * @returns {Promise<boolean>} True if the pipeline execution succeeded, false otherwise.
+ */
+async function waitForPipelineCompletion(
+  client: CodePipelineClient,
+  pipelineName: string,
+  executionId: string
+): Promise<boolean> {
+  let status = 'InProgress'
+
+  do {
+    const command = new GetPipelineExecutionCommand({
+      pipelineName: pipelineName,
+      pipelineExecutionId: executionId
+    })
+
+    const response: GetPipelineExecutionCommandOutput =
+      await client.send(command)
+    status = response.pipelineExecution?.status || 'InProgress'
+
+    if (status === 'InProgress') {
+      console.log('Pipeline execution in progress. Waiting...')
+      await new Promise(resolve => setTimeout(resolve, 30000)) // Wait for 30 seconds before polling again.
+    } else {
+      console.log(`Pipeline execution completed with status: ${status}`)
+    }
+  } while (status === 'InProgress')
+
+  return status === 'Succeeded'
+}
 
 /**
  * The main function for the action.
@@ -27,9 +65,29 @@ export async function run(): Promise<void> {
       name: pipelineName
     })
 
+    let executionId: string | undefined
+
     try {
-      const data = await codePipelineClient.send(startCommand)
-      console.log(data)
+      const data: StartPipelineExecutionCommandOutput =
+        await codePipelineClient.send(startCommand)
+      executionId = data.pipelineExecutionId
+      console.log(`Pipeline execution started. Execution ID: ${executionId}`)
+
+      if (!executionId) {
+        throw new Error('Failed to get the pipeline execution ID.')
+      }
+
+      const success = await waitForPipelineCompletion(
+        codePipelineClient,
+        pipelineName,
+        executionId
+      )
+
+      if (success) {
+        console.log('Pipeline execution succeeded.')
+      } else {
+        throw new Error('Pipeline execution failed or was stopped.')
+      }
     } catch (err) {
       if (err instanceof Error) {
         console.error(err.message)
@@ -40,6 +98,12 @@ export async function run(): Promise<void> {
       }
     }
   } catch (error) {
-    core.setFailed((error as Error).message)
+    if (error instanceof Error) {
+      console.error(error.message)
+      core.setFailed(error.message)
+    } else {
+      console.error('An unknown error occurred')
+      core.setFailed('An unknown error occurred')
+    }
   }
 }
