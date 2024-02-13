@@ -21,6 +21,8 @@ async function waitForPipelineCompletion(
 ): Promise<boolean> {
   let status = 'InProgress'
 
+  await new Promise(resolve => setTimeout(resolve, 5000))
+
   do {
     const command = new GetPipelineExecutionCommand({
       pipelineName: pipelineName,
@@ -33,7 +35,7 @@ async function waitForPipelineCompletion(
 
     if (status === 'InProgress') {
       console.log('Pipeline execution in progress. Waiting...')
-      await new Promise(resolve => setTimeout(resolve, 30000)) // Wait for 30 seconds before polling again.
+      await new Promise(resolve => setTimeout(resolve, 10000)) // Wait for 10 seconds before polling again.
     } else {
       console.log(`Pipeline execution completed with status: ${status}`)
     }
